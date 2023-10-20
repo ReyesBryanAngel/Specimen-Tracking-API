@@ -1,0 +1,27 @@
+version: '3'
+ 
+services:
+  db:
+    image: mysql:8.0.34
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: Toshiba_040618
+      MYSQL_DATABASE: specimen-tracking-api
+    ports:
+      - "3066:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+volumes:
+  dbdata:
