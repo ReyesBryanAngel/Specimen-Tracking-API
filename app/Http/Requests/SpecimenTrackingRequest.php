@@ -3,38 +3,73 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\RequiredIf;
+use Illuminate\Validation\Rule;
+use App\Models\SpecimenForm;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
 
 class SpecimenTrackingRequest extends FormRequest
 {
     const STRING_REQUIRED = 'required|string';
     public function rules()
     {
+        $repeat_sample = $this->input('type_of_sample') !== "Repeat Sample";
+        
+
         return [
-            'type_of_sample' => self::STRING_REQUIRED,
-            'baby_last_name' => self::STRING_REQUIRED,
-            'baby_last_first_name' => self::STRING_REQUIRED,
-            'for_multiple_births' => self::STRING_REQUIRED,
-            'mothers_first_name' => self::STRING_REQUIRED,
-            'date_and_time_of_birth' => 'required|date',
-            'sex' => 'required|in:Male,Female,Other',
-            'babys_weight_in_grams' => 'required|numeric',
-            'date_and_time_of_collection' => 'required|date',
-            'age_of_gestation_in_weeks' => 'required|integer|min:0',
-            'place_of_collection' => self::STRING_REQUIRED,
-            'place_of_birth' => self::STRING_REQUIRED,
-            'attending_practitioner' => self::STRING_REQUIRED,
-            'practitioner_profession' => self::STRING_REQUIRED,
-            'practitioners_day_contact_number' => self::STRING_REQUIRED,
-            'practitioners_mobile_number' => self::STRING_REQUIRED,
-            'baby_status' => self::STRING_REQUIRED,
-            'baby_status_cont' => self::STRING_REQUIRED,
-            'name_of_parent' => self::STRING_REQUIRED,
-            'number_and_street' => self::STRING_REQUIRED,
-            'barangay_or_city' => self::STRING_REQUIRED,
-            'province' => self::STRING_REQUIRED,
-            'zip_code' => self::STRING_REQUIRED,
-            'contact_number_of_parent' => self::STRING_REQUIRED,
-            'additional_contact_number' => self::STRING_REQUIRED,
+            'type_of_sample' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'baby_last_name' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'baby_first_name' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'for_multiple_births' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'mothers_first_name' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'date_and_time_of_birth' => $repeat_sample ? 'required|date' : 'nullable',
+            'sex' => $repeat_sample ? 'required|in:M,F,A' : 'nullable',
+            'babys_weight_in_grams' => $repeat_sample ? 'required|numeric' : 'nullable',
+            'date_and_time_of_collection' => $repeat_sample ? 'required|date' : 'nullable',
+            'age_of_gestation_in_weeks' => $repeat_sample ? 'required|integer|min:0': 'nullable',
+            'place_of_collection' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'place_of_birth' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'attending_practitioner' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'practitioner_profession' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'practitioner_profession_other' => [Rule::requiredIf($this->input("practitioner_profession") === "other" && $repeat_sample), 'nullable'],
+            'practitioners_day_contact_number' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'practitioners_mobile_number' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'specimens' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'baby_status' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'baby_status_cont' => $repeat_sample ? [
+                Rule::requiredIf(function () {
+                    $requiredValues = [
+                        'Date of Blood Transfusion',
+                        'Combination of above, please state',
+                        'Other Relevant Clinical Information',
+                    ];
+                    return in_array($this->input('baby_status'), $requiredValues);
+                }),
+            ] : 'nullable',
+            'name_of_parent' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'number_and_street' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'barangay_or_city' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'province' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'zip_code' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'contact_number_of_parent' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'additional_contact_number' => $repeat_sample ? self::STRING_REQUIRED : 'nullable',
+            'specimen_status' => $repeat_sample ? 'nullable' : [Rule::in(SpecimenForm::SPECIMEN_STATUS)],
+            'result' => $repeat_sample ? 'nullable' :[Rule::in(SpecimenForm::RESULT)],
+            'checked' => 'boolean',
+            'tracking_number' => 'string',
+
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        $response = response()->json([
+            'status' => 'error',
+            'message' => 'Validation failed',
+            'errors' => $validator->errors(),
+        ], 422);
+
+        throw new ValidationException($validator, $response);
     }
 }

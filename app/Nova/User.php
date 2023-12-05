@@ -9,9 +9,12 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use App\Traits\UUID;
 
 class User extends Resource
 {
+    use UUID;
+    
     /**
      * The model the resource corresponds to.
      *

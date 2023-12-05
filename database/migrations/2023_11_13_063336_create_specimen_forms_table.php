@@ -14,10 +14,12 @@ class CreateSpecimenFormsTable extends Migration
     public function up()
     {
         Schema::create('specimen_forms', function (Blueprint $table) {
-            $table->id('id');
+            $table->uuid('id')->primary();
+            $table->string('tracking_number')->nullable(true);
+            $table->boolean('checked')->default(true); 
             $table->string("type_of_sample")->nullable(true);
             $table->string("baby_last_name")->nullable(true);
-            $table->string("baby_last_first_name")->nullable(true);
+            $table->string("baby_first_name")->nullable(true);
             $table->string("for_multiple_births")->nullable(true);
             $table->string("mothers_first_name")->nullable(true);
             $table->dateTime("date_and_time_of_birth")->nullable(true);
@@ -25,9 +27,12 @@ class CreateSpecimenFormsTable extends Migration
             $table->float("babys_weight_in_grams")->nullable(true);
             $table->dateTime("date_and_time_of_collection")->nullable(true);
             $table->integer("age_of_gestation_in_weeks")->nullable(true);
+            $table->string("specimens")->nullable(true);
             $table->string("place_of_collection")->nullable(true);
             $table->string("place_of_birth")->nullable(true);
             $table->string("attending_practitioner")->nullable(true);
+            $table->string("specimen_status")->nullable(true);
+            $table->string("practitioner_profession_other")->nullable(true);
             $table->string("practitioner_profession")->nullable(true);
             $table->string("practitioners_day_contact_number")->nullable(true);
             $table->string("practitioners_mobile_number")->nullable(true);
@@ -39,7 +44,7 @@ class CreateSpecimenFormsTable extends Migration
             $table->string("province")->nullable(true);
             $table->string("zip_code")->nullable(true);
             $table->string("contact_number_of_parent")->nullable(true);
-            $table->string("additional_contact_number")->nullable(true);         
+            $table->string("additional_contact_number")->nullable(true);        
             $table->timestamps();
         });
     }
